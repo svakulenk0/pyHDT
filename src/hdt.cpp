@@ -85,6 +85,10 @@ PYBIND11_MODULE(hdt, m) {
            py::arg("predicate"), py::arg("object"), py::arg("limit") = 0,
            py::arg("offset") = 0)
       .def("search_join", &HDTDocument::searchJoin)
+      .def("configure_hops", &HDTDocument::configureHops)
+      .def("compute_hops", &HDTDocument::computeHopsIDs)
+      .def("string_to_id", &HDTDocument::StringToid)
+      .def("id_to_string", &HDTDocument::idToString)
       .def("search_triples_ids", &HDTDocument::searchIDs,
            HDT_DOCUMENT_SEARCH_TRIPLES_IDS_DOC, py::arg("subject"),
            py::arg("predicate"), py::arg("object"), py::arg("limit") = 0,
@@ -94,4 +98,9 @@ PYBIND11_MODULE(hdt, m) {
            py::arg("subject"), py::arg("predicate"), py::arg("object"))
       .def("__len__", &HDTDocument::getNbTriples, HDT_DOCUMENT_GETNBTRIPLES_DOC)
       .def("__repr__", &HDTDocument::python_repr);
+
+ py::enum_<hdt::TripleComponentRole>(m, "TripleComponentRole", py::arithmetic())
+        .value("SUBJECT", hdt::TripleComponentRole::SUBJECT)
+        .value("PREDICATE", hdt::TripleComponentRole::PREDICATE)
+        .value("OBJECT", hdt::TripleComponentRole::OBJECT);
 }

@@ -51,6 +51,7 @@ include_dirs = [
     "include/",
     "hdt-cpp-1.3.2/libhdt/include/",
     "hdt-cpp-1.3.2/libhdt/src/dictionary/",
+    "hdt-cpp-1.3.2/libhdt/src/triples/",
     "hdt-cpp-1.3.2/libhdt/src/sparql/",
     "hdt-cpp-1.3.2/libcds/include/",
     "hdt-cpp-1.3.2/libcds/src/static/bitsequence",

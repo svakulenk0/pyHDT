@@ -16,6 +16,12 @@
 #include <string>
 #include <vector>
 
+// new inclusions
+#include <HDTEnums.hpp>
+#include <Triples.hpp>
+#include <unordered_set>
+#include <tuple>
+
 // The result of a search for a triple pattern in a HDT document:
 // a tuple (matching RDF triples, nb of matching RDF triples)
 typedef std::tuple<TripleIterator *, size_t> search_results;
@@ -33,6 +39,29 @@ private:
   hdt::HDT *hdt;
   hdt::QueryProcessor *processor;
   HDTDocument(std::string file);
+
+/*!
+   * Add a new hop starting from the given termID
+   * @param termID
+   * @param numHops
+   * @param currenthop
+   * @param role
+   * @param preds
+   * @param filterPrefixStr
+   */
+  void addhop(size_t termID,int currenthop,hdt::TripleComponentRole role);
+
+  /*!
+   * Output the result of the hop, in outtriples
+   */
+  std::tuple<vector<unsigned int>,vector<unsigned int>,vector<vector<std::tuple<unsigned int, unsigned int>>>> outputMatrix();
+
+  int numHops;
+  string filterPrefixStr;
+  bool continuousDictionary;
+  std::unordered_set<unsigned int> preds;
+  std::unordered_set<size_t> processedTerms;
+  hdt::ModifiableTriples* outtriples;
 
 public:
   /*!
@@ -125,6 +154,39 @@ public:
                                unsigned int offset = 0);
 
   JoinIterator * searchJoin(std::vector<triple> patterns);
+
+
+ /*!
+   * Configure the hop functionality
+   * @param setnumHops number of hops (default 1)
+   * @param filterPredicates predicates to consider in the hops, set "" for all
+   * @param setfilterPrefixStr only consider entities with the given prefix, set "" for all
+   * @param setcontinuousDictionary Output the result using a continuous mapping (object IDs after subjects) instead of the traditional HDT dictionary (default true)
+   */
+  void configureHops(int setnumHops,vector<string> filterPredicates,string setfilterPrefixStr,bool setcontinuousDictionary);
+
+  /*!
+   * Compute the reachable triples from the given terms, in the configure number of numHops.
+   * @param terms
+   */
+  std::tuple<vector<unsigned int>,vector<unsigned int>,vector<vector<std::tuple<unsigned int, unsigned int>>>> computeHopsIDs(vector<unsigned int> terms);
+
+  /*!
+   * Get the string associated to a given id in the dictionary
+   * @param id
+   * @param role
+   * @return
+   */
+  string idToString (unsigned int id, hdt::TripleComponentRole role);
+
+  /*!
+     * Get the string associated to a given id in the dictionary
+     * @param term
+     * @param role
+     * @return
+     */
+  unsigned int StringToid (string term, hdt::TripleComponentRole role);
+
 };
 
 #endif /* PYHDT_DOCUMENT_HPP */
