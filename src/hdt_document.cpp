@@ -328,6 +328,8 @@ std::tuple<vector<unsigned int>,vector<unsigned int>,vector<vector<std::tuple<un
 		matrix.push_back(currentPredicateMatrix);
 	}
 	delete it;
+	delete outtriples;
+	mappingGlobalToLocalID.clear();
 
 	std::tuple<vector<unsigned int>,vector<unsigned int>,vector<vector<std::tuple<unsigned int, unsigned int>>>> ret =std::make_tuple(mappingLocalToGlobalID,predicates,matrix);
 	return ret;
