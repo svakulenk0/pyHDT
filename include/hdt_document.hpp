@@ -187,6 +187,8 @@ public:
      */
   unsigned int StringToid (string term, hdt::TripleComponentRole role);
 
+  void remove();
+
 };
 
 #endif /* PYHDT_DOCUMENT_HPP */

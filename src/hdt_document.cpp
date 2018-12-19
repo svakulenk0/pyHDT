@@ -396,3 +396,6 @@ void HDTDocument::addhop(size_t termID,int currenthop,TripleComponentRole role){
 	}
 	delete it;
 }
+void HDTDocument::remove(){
+	delete hdt;
+}

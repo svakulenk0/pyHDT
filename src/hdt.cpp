@@ -87,6 +87,7 @@ PYBIND11_MODULE(hdt, m) {
       .def("search_join", &HDTDocument::searchJoin)
       .def("configure_hops", &HDTDocument::configureHops)
       .def("compute_hops", &HDTDocument::computeHopsIDs)
+      .def("remove", &HDTDocument::remove)
       .def("string_to_id", &HDTDocument::StringToid)
       .def("id_to_string", &HDTDocument::idToString)
       .def("search_triples_ids", &HDTDocument::searchIDs,
