@@ -86,6 +86,7 @@ PYBIND11_MODULE(hdt, m) {
            py::arg("offset") = 0)
       .def("search_join", &HDTDocument::searchJoin)
       .def("configure_hops", &HDTDocument::configureHops)
+      .def("compute_all_hops", &HDTDocument::computeAllHopsIDs)
       .def("compute_hops", &HDTDocument::computeHopsIDs)
       .def("remove", &HDTDocument::remove)
       .def("string_to_id", &HDTDocument::StringToid)

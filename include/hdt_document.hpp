@@ -10,6 +10,7 @@
 #include "QueryProcessor.hpp"
 #include "pyhdt_types.hpp"
 #include "triple_iterator.hpp"
+#include "triple_comparison.hpp"
 #include "tripleid_iterator.hpp"
 #include "join_iterator.hpp"
 #include <list>
@@ -43,13 +44,12 @@ private:
 /*!
    * Add a new hop starting from the given termID
    * @param termID
-   * @param numHops
    * @param currenthop
    * @param role
-   * @param preds
-   * @param filterPrefixStr
+   * @param limit
+   * @param offset
    */
-  void addhop(size_t termID,int currenthop,hdt::TripleComponentRole role);
+void addhop(size_t termID,int currenthop,hdt::TripleComponentRole role,unsigned int limit, unsigned int offset);
 
   /*!
    * Output the result of the hop, in outtriples
@@ -61,7 +61,12 @@ private:
   bool continuousDictionary;
   std::unordered_set<unsigned int> preds;
   std::unordered_set<size_t> processedTerms;
-  hdt::ModifiableTriples* outtriples;
+  unsigned int processedTriples;
+  unsigned int readTriples;
+
+  // Declaring unordered_set of TripleID
+   std::unordered_set<hdt::TripleID, TripleIDHasher,TripleIDComparator> outtriplesSet;
+   std::unordered_set<hdt::TripleID, TripleIDHasher,TripleIDComparator> skippedtriplesSet;
 
 public:
   /*!
@@ -163,13 +168,19 @@ public:
    * @param setfilterPrefixStr only consider entities with the given prefix, set "" for all
    * @param setcontinuousDictionary Output the result using a continuous mapping (object IDs after subjects) instead of the traditional HDT dictionary (default true)
    */
-  void configureHops(int setnumHops,vector<string> filterPredicates,string setfilterPrefixStr,bool setcontinuousDictionary);
+  void configureHops(int setnumHops,vector<unsigned int> filterPredicates,string setfilterPrefixStr,bool setcontinuousDictionary);
 
   /*!
    * Compute the reachable triples from the given terms, in the configure number of numHops.
    * @param terms
    */
-  std::tuple<vector<unsigned int>,vector<unsigned int>,vector<vector<std::tuple<unsigned int, unsigned int>>>> computeHopsIDs(vector<unsigned int> terms);
+  std::tuple<vector<unsigned int>,vector<unsigned int>,vector<vector<std::tuple<unsigned int, unsigned int>>>> computeAllHopsIDs(vector<unsigned int> terms);
+
+  /*!
+     * Compute the reachable triples from the given terms, in the configure number of numHops. It also sets the limit and offset in terms of number of triples
+     * @param terms
+     */
+    std::tuple<vector<unsigned int>,vector<unsigned int>,vector<vector<std::tuple<unsigned int, unsigned int>>>> computeHopsIDs(vector<unsigned int> terms, unsigned int limit, unsigned int offset);
 
   /*!
    * Get the string associated to a given id in the dictionary
