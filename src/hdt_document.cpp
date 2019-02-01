@@ -66,6 +66,7 @@ HDTDocument::HDTDocument(std::string file) {
   numHops=1;
   filterPrefixStr="";
   continuousDictionary=true;
+  typeString="http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 }
 
 /*!
@@ -232,6 +233,58 @@ void HDTDocument::configureHops(int setnumHops,vector<unsigned int> filterPredic
 
 	filterPrefixStr = setfilterPrefixStr;
 	continuousDictionary = setcontinuousDictionary;
+
+}
+
+/*!
+* Compute the reachable triples from the given terms, in the configure number of numHops.
+* @param terms
+* @param classes
+*/
+
+vector<vector<unsigned int>> HDTDocument::filterTypeIDs(vector<unsigned int> terms,vector<unsigned int> classes){
+
+	map<unsigned int, vector<unsigned int>> classesToEntities; //for each class, the entities with this class
+	vector<unsigned int> classesCorrectId; //the provided classes with the correct IDs
+
+	//initialize map with the classes provided
+	for (int i=0;i<classes.size();i++){
+		vector<unsigned int> entities;
+		unsigned int classID=classes[i];
+		if (continuousDictionary){ //get the appropriate ID
+			// convert the id to the traditional one
+			classID = classID - (hdt->getDictionary()->getNsubjects()-hdt->getDictionary()->getNshared());
+		}
+		classesCorrectId.push_back(classID);
+		classesToEntities[classID]=entities;
+	}
+
+	// get the ID of the type
+	unsigned int typeID = hdt->getDictionary()->stringToId(typeString,PREDICATE);
+	for (int i=0;i<terms.size();i++){
+		unsigned int term =terms[i];
+		IteratorTripleID *it=NULL;
+		TripleID patternSubject(term,typeID,0);
+		it  = hdt->getTriples()->search(patternSubject);
+		while (it->hasNext())
+		{
+			unsigned int classValueID = it->next()->getObject();
+			if (classesToEntities.find(classValueID)!=classesToEntities.end()){ //if the class is one of the one we are interested, add the entity
+				classesToEntities[classValueID].push_back(term);
+			}
+
+		}
+		delete it;
+	}
+
+	vector<vector<unsigned int>> ret;
+	//prepare output
+	for (int i=0;i<classesCorrectId.size();i++){
+	//for(std::map<unsigned int, vector<unsigned int>>::iterator iter = classesToEntities.begin(); iter != classesToEntities.end(); ++iter)
+		//unsigned int classID =  iter->first;
+		ret.push_back(classesToEntities[classesCorrectId[i]]);
+	}
+	return ret;
 
 }
 

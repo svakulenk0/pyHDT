@@ -63,6 +63,7 @@ void addhop(size_t termID,int currenthop,hdt::TripleComponentRole role,unsigned 
   std::unordered_set<size_t> processedTerms;
   unsigned int processedTriples;
   unsigned int readTriples;
+  string typeString;
 
   // Declaring unordered_set of TripleID
    std::unordered_set<hdt::TripleID, TripleIDHasher,TripleIDComparator> outtriplesSet;
@@ -181,6 +182,13 @@ public:
      * @param terms
      */
     std::tuple<vector<unsigned int>,vector<unsigned int>,vector<vector<std::tuple<unsigned int, unsigned int>>>> computeHopsIDs(vector<unsigned int> terms, unsigned int limit, unsigned int offset);
+
+   /*!
+     * Compute the reachable triples from the given terms, in the configure number of numHops.
+     * @param terms
+     * @param classes
+     */
+    vector<vector<unsigned int>> filterTypeIDs(vector<unsigned int> terms,vector<unsigned int> classes);
 
   /*!
    * Get the string associated to a given id in the dictionary
