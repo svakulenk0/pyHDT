@@ -252,8 +252,10 @@ vector<vector<unsigned int>> HDTDocument::filterTypeIDs(vector<unsigned int> ter
 		vector<unsigned int> entities;
 		unsigned int classID=classes[i];
 		if (continuousDictionary){ //get the appropriate ID
-			// convert the id to the traditional one
-			classID = classID - (hdt->getDictionary()->getNsubjects()-hdt->getDictionary()->getNshared());
+			if (classID>hdt->getDictionary()->getNsubjects()){
+				// convert the id to the traditional one
+				classID = classID - (hdt->getDictionary()->getNsubjects()-hdt->getDictionary()->getNshared());
+			}
 		}
 		classesCorrectId.push_back(classID);
 		classesToEntities[classID]=entities;
