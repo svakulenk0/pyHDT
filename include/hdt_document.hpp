@@ -64,6 +64,12 @@ void addhop(size_t termID,int currenthop,hdt::TripleComponentRole role,unsigned 
   unsigned int processedTriples;
   unsigned int readTriples;
   string typeString;
+  unsigned int preffixIniSO;
+  unsigned int preffixEndSO;
+  unsigned int preffixIniSUBJECT;
+  unsigned int preffixEndSUBJECT;
+  unsigned int preffixIniOBJECT;
+  unsigned int preffixEndOBJECT;
 
   // Declaring unordered_set of TripleID
    std::unordered_set<hdt::TripleID, TripleIDHasher,TripleIDComparator> outtriplesSet;

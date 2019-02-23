@@ -60,13 +60,20 @@ HDTDocument::HDTDocument(std::string file) {
   if (!file_exists(file)) {
     throw std::runtime_error("Cannot open HDT file '" + file + "': Not Found!");
   }
-  hdt = HDTManager::mapIndexedHDT(file.c_str());
+  //hdt = HDTManager::mapIndexedHDT(file.c_str());
+  hdt = HDTManager::loadIndexedHDT(file.c_str());
   processor = new QueryProcessor(hdt);
 
   numHops=1;
   filterPrefixStr="";
   continuousDictionary=true;
   typeString="http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+  preffixIniSO=0;
+  preffixEndSO=0;
+  preffixIniSUBJECT=0;
+  preffixEndSUBJECT=0;
+  preffixIniOBJECT=0;
+  preffixEndOBJECT=0;
 }
 
 /*!
@@ -230,9 +237,76 @@ void HDTDocument::configureHops(int setnumHops,vector<unsigned int> filterPredic
 	std::copy(filterPredicates.begin(),
 			filterPredicates.end(),
 	            std::inserter(preds, preds.end()));
-
-	filterPrefixStr = setfilterPrefixStr;
 	continuousDictionary = setcontinuousDictionary;
+
+	// Get range of preffix
+	filterPrefixStr = setfilterPrefixStr;
+
+	if (setfilterPrefixStr!=""){
+		if (setfilterPrefixStr=="predef-dbpedia2016-04"){ // FOR DBPEDIA 2016-04
+			preffixIniSO=2979755;
+			preffixEndSO=24597521;
+			preffixIniOBJECT=151243949;
+			preffixEndOBJECT=153168015;
+			preffixIniSUBJECT=50097212;
+			preffixEndSUBJECT=52750736;
+		}
+		else{
+			IteratorUInt *itIDSol = hdt->getDictionary()->getIDSuggestions(setfilterPrefixStr.c_str(),SUBJECT);
+			unsigned int sol=0,prev=0,ini=0;
+
+			bool soZone=true;
+			while (itIDSol->hasNext()) {
+				sol =  itIDSol->next();
+				//cout << "solution ID is "<<sol << ", which corresponds to string: "<<hdt->getDictionary()->idToString(sol,SUBJECT)<<endl;
+				if (ini==0) {
+					if (sol<=hdt->getDictionary()->getNshared())
+						preffixIniSO=sol;
+					else{
+						preffixIniSUBJECT=sol;
+						soZone=false;
+					}
+					ini++;
+				}
+				else{
+					if (soZone && sol >=hdt->getDictionary()->getNshared()){
+						preffixEndSO=prev;
+						preffixIniSUBJECT=sol;
+						soZone=false;
+					}
+
+				}
+				prev=sol;
+			}
+			if (soZone)
+				preffixEndSO=sol;
+			else
+				preffixEndSUBJECT=sol;
+			/*
+				cout << "First solution ID SO is "<<preffixIniSO << ", which corresponds to string: "<<hdt->getDictionary()->idToString(preffixIniSO,SUBJECT)<<endl;
+				cout << "Last solution ID  SO is "<<preffixEndSO << ", which corresponds to string: "<<hdt->getDictionary()->idToString(preffixEndSO,SUBJECT)<<endl;
+				cout << "First solution ID SUBJECT  is "<<preffixIniSUBJECT << ", which corresponds to string: "<<hdt->getDictionary()->idToString(preffixIniSUBJECT,SUBJECT)<<endl;
+				cout << "Last solution ID SUBJECT  is "<<preffixEndSUBJECT << ", which corresponds to string: "<<hdt->getDictionary()->idToString(preffixEndSUBJECT,SUBJECT)<<endl;
+			*/
+			itIDSol = hdt->getDictionary()->getIDSuggestions(setfilterPrefixStr.c_str(),OBJECT);
+			ini=0,prev=0,sol=0;
+			bool OZone=false;
+			while (itIDSol->hasNext()) {
+				sol =  itIDSol->next();
+				if (!OZone && sol>preffixEndSO){
+					preffixIniOBJECT=sol;
+					OZone=true;
+				}
+			}
+			if (OZone)
+				preffixEndOBJECT=sol;
+			/*
+				cout << "First solution ID OBJECT  is "<<preffixIniOBJECT << ", which corresponds to string: "<<hdt->getDictionary()->idToString(preffixIniOBJECT,OBJECT)<<endl;
+				cout << "Last solution ID OBJECT  is "<<preffixEndOBJECT << ", which corresponds to string: "<<hdt->getDictionary()->idToString(preffixEndOBJECT,OBJECT)<<endl;
+
+			*/
+		}
+	}
 
 }
 
@@ -417,7 +491,8 @@ void HDTDocument::addhop(size_t termID,int currenthop,TripleComponentRole role, 
 					if (preds.size()==0 || preds.find(triple->getPredicate())!=preds.end())
 					{
 						//check the prefix if needed
-						if (filterPrefixStr=="" || (hdt->getDictionary()->idToString(triple->getObject(),OBJECT).find(filterPrefixStr) != std::string::npos)){
+						//if (filterPrefixStr=="" || (hdt->getDictionary()->idToString(triple->getObject(),OBJECT).find(filterPrefixStr) != std::string::npos)){
+						if (filterPrefixStr=="" || ((triple->getObject()>=preffixIniSO) && (triple->getObject() <=preffixEndSO)) || ((triple->getObject()>=preffixIniOBJECT) && (triple->getObject() <=preffixEndOBJECT))){
 							if (processedTriples<limit){ // check if we exceed the limit in terms of number of triples
 								if (readTriples<offset){ //check if we need to skip some offset
 									if (skippedtriplesSet.find(*triple)==skippedtriplesSet.end()){ //only count as skipped if the triple is not skipped before
@@ -459,7 +534,8 @@ void HDTDocument::addhop(size_t termID,int currenthop,TripleComponentRole role, 
 						if (preds.size()==0 || preds.find(triple->getPredicate())!=preds.end())
 						{
 							//check the prefix if needed
-							if (filterPrefixStr=="" || (hdt->getDictionary()->idToString(triple->getObject(),OBJECT).find(filterPrefixStr) != std::string::npos)){
+							//if (filterPrefixStr=="" || (hdt->getDictionary()->idToString(triple->getObject(),OBJECT).find(filterPrefixStr) != std::string::npos)){
+							if (filterPrefixStr=="" || ((triple->getObject()>=preffixIniSO) && (triple->getSubject() <=preffixEndSO)) || ((triple->getObject()>=preffixIniSUBJECT) && (triple->getSubject() <=preffixEndSUBJECT))){
 								if (processedTriples<limit){ // check if we exceed the limit in terms of number of triples
 									if (readTriples<offset){ //check if we need to skip some offset
 										if (skippedtriplesSet.find(*triple)==skippedtriplesSet.end()){ //only count as skipped if the triple is not present before
