@@ -60,7 +60,8 @@ HDTDocument::HDTDocument(std::string file) {
   if (!file_exists(file)) {
     throw std::runtime_error("Cannot open HDT file '" + file + "': Not Found!");
   }
-  hdt = HDTManager::mapIndexedHDT(file.c_str());
+  //hdt = HDTManager::mapIndexedHDT(file.c_str());
+  hdt = HDTManager::loadIndexedHDT(file.c_str());
   processor = new QueryProcessor(hdt);
 
   numHops=1;

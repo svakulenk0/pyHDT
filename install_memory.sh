@@ -11,8 +11,8 @@ echo "Downloading HDT..."
 wget https://github.com/rdfhdt/hdt-cpp/archive/v1.3.2.zip
 unzip v1.3.2.zip
 
-echo "Patching files, HDT consumed in disk..."
-cp patch_memory_noDictionary/hdt_document_disk.cpp src/hdt_document.cpp
+echo "Patching files, loading HDT in memory"
+cp patch_memory_noDictionary/hdt_document_memory.cpp src/hdt_document.cpp
 
 echo "Installing pybind11..."
 pip install -r requirements.txt
