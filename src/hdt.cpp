@@ -87,6 +87,7 @@ PYBIND11_MODULE(hdt, m) {
       .def("search_join", &HDTDocument::searchJoin)
       .def("configure_hops", &HDTDocument::configureHops)
       .def("compute_all_hops", &HDTDocument::computeAllHopsIDs)
+      .def("cloneHDT", &HDTDocument::cloneHDT)
       .def("compute_hops", &HDTDocument::computeHopsIDs)
       .def("filter_types", &HDTDocument::filterTypeIDs)
       .def("remove", &HDTDocument::remove)

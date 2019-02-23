@@ -123,6 +123,13 @@ public:
    */
   unsigned int getNbShared();
 
+ void setHDT(hdt::HDT* hdt);
+
+   hdt::HDT* getHDT();
+
+ void cloneHDT(HDTDocument doc);
+
+
   /*!
    * Static factory method used to create a new HDT Document
    * @param  file

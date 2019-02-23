@@ -56,13 +56,14 @@ inline bool file_exists(const std::string &name) {
  * @param file [description]
  */
 HDTDocument::HDTDocument(std::string file) {
-  hdt_file = file;
-  if (!file_exists(file)) {
-    throw std::runtime_error("Cannot open HDT file '" + file + "': Not Found!");
+  if (file!=""){
+	  hdt_file = file;
+	  if (!file_exists(file)) {
+	    throw std::runtime_error("Cannot open HDT file '" + file + "': Not Found!");
+	  }
+	  hdt = HDTManager::mapIndexedHDT(file.c_str());
+	  processor = new QueryProcessor(hdt);
   }
-  hdt = HDTManager::mapIndexedHDT(file.c_str());
-  processor = new QueryProcessor(hdt);
-
   numHops=1;
   filterPrefixStr="";
   continuousDictionary=true;
@@ -74,6 +75,7 @@ HDTDocument::HDTDocument(std::string file) {
   preffixIniOBJECT=0;
   preffixEndOBJECT=0;
 }
+
 
 /*!
  * Destructor
@@ -516,6 +518,7 @@ void HDTDocument::addhop(size_t termID,int currenthop,TripleComponentRole role, 
 					}
 
 				}
+				delete it;
 			}
 		}
 		// process as a objectID
@@ -559,11 +562,27 @@ void HDTDocument::addhop(size_t termID,int currenthop,TripleComponentRole role, 
 						}
 					}
 				}
+				delete it;
 			}
 		}
-		delete it;
+		//delete it;
 	}
 }
 void HDTDocument::remove(){
 	delete hdt;
 }
+
+void HDTDocument::setHDT(hdt::HDT* hdtCopy){
+	hdt = hdtCopy;
+	processor = new QueryProcessor(hdt);
+}
+
+hdt::HDT* HDTDocument::getHDT(){
+	return hdt;
+}
+
+void HDTDocument::cloneHDT (HDTDocument doc){
+	hdt = doc.getHDT();
+	processor = new QueryProcessor(hdt);
+}
+
