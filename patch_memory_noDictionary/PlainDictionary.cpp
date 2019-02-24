@@ -612,15 +612,7 @@ unsigned int PlainDictionary::getMaxPredicateID() {
 }
 
 unsigned int PlainDictionary::getMaxObjectID() {
-	unsigned int nshared = shared.size();
-	unsigned int s = subjects.size();
-	unsigned int o = objects.size();
-
-	if(mapping ==MAPPING2) {
-		return nshared+o;
-	} else {
-		return nshared+s+o;
-	}
+	return  206201072;
 }
 
 unsigned int PlainDictionary::getNsubjects() {
