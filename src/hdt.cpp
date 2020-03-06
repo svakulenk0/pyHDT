@@ -93,6 +93,8 @@ PYBIND11_MODULE(hdt, m) {
       .def("remove", &HDTDocument::remove)
       .def("string_to_id", &HDTDocument::StringToid)
       .def("id_to_string", &HDTDocument::idToString)
+      .def("string_to_global_id", &HDTDocument::StringToGlobalId)
+      .def("global_id_to_string", &HDTDocument::globalIdToString)
       .def("search_triples_ids", &HDTDocument::searchIDs,
            HDT_DOCUMENT_SEARCH_TRIPLES_IDS_DOC, py::arg("subject"),
            py::arg("predicate"), py::arg("object"), py::arg("limit") = 0,

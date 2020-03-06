@@ -232,6 +232,28 @@ unsigned int HDTDocument::StringToid (string term, hdt::TripleComponentRole role
 	return hdt->getDictionary()->stringToId(term,role);
 }
 
+string HDTDocument::globalIdToString (unsigned int id, hdt::TripleComponentRole role){
+	if (role==OBJECT){
+		if (continuousDictionary && id>hdt->getDictionary()->getNsubjects()){
+			// convert the id to the traditional one
+			id = id - (hdt->getDictionary()->getNsubjects()-hdt->getDictionary()->getNshared());
+		}
+	}
+
+	return hdt->getDictionary()->idToString(id,role);
+
+}
+
+unsigned int HDTDocument::StringToGlobalId (string term, hdt::TripleComponentRole role){
+	unsigned int id = hdt->getDictionary()->stringToId(term,role);
+		if (role==OBJECT){
+			if (continuousDictionary && id>hdt->getDictionary()->getNsubjects()){
+				id=id+(hdt->getDictionary()->getNsubjects()-hdt->getDictionary()->getNshared());
+			}
+		}
+		return id;
+}
+
 void HDTDocument::configureHops(int setnumHops,vector<unsigned int> filterPredicates,string setfilterPrefixStr,bool setcontinuousDictionary){
 	numHops = setnumHops;
 	preds.clear();

@@ -219,6 +219,22 @@ public:
      */
   unsigned int StringToid (string term, hdt::TripleComponentRole role);
 
+/*!
+     * Get the string associated to a given global Id
+     * @param id
+     * @param role
+     * @return
+     */
+    string globalIdToString (unsigned int id, hdt::TripleComponentRole role);
+
+    /*!
+       * Get the global ID associated to a given string in the dictionary
+       * @param term
+       * @param role
+       * @return
+       */
+    unsigned int StringToGlobalId (string term, hdt::TripleComponentRole role);
+
   void remove();
 
 };
