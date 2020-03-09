@@ -70,6 +70,8 @@ void addhop(size_t termID,int currenthop,hdt::TripleComponentRole role,unsigned 
   unsigned int preffixEndSUBJECT;
   unsigned int preffixIniOBJECT;
   unsigned int preffixEndOBJECT;
+  unsigned int literalEndID;
+  bool includeLiterals;
 
   // Declaring unordered_set of TripleID
    std::unordered_set<hdt::TripleID, TripleIDHasher,TripleIDComparator> outtriplesSet;
@@ -181,8 +183,9 @@ public:
    * @param filterPredicates predicates to consider in the hops, set "" for all
    * @param setfilterPrefixStr only consider entities with the given prefix, set "" for all
    * @param setcontinuousDictionary Output the result using a continuous mapping (object IDs after subjects) instead of the traditional HDT dictionary (default true)
+   * @param setincludeLiterals Include literals in the computation on hops
    */
-  void configureHops(int setnumHops,vector<unsigned int> filterPredicates,string setfilterPrefixStr,bool setcontinuousDictionary);
+  void configureHops(int setnumHops,vector<unsigned int> filterPredicates,string setfilterPrefixStr,bool setcontinuousDictionary, bool setincludeLiterals);
 
   /*!
    * Compute the reachable triples from the given terms, in the configure number of numHops.

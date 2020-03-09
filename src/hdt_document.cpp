@@ -61,11 +61,9 @@ HDTDocument::HDTDocument(std::string file) {
 	  if (!file_exists(file)) {
 	    throw std::runtime_error("Cannot open HDT file '" + file + "': Not Found!");
 	  }
-	  //hdt = HDTManager::mapIndexedHDT(file.c_str());
-	  hdt = HDTManager::loadIndexedHDT(file.c_str());
+	  hdt = HDTManager::mapIndexedHDT(file.c_str());
 	  processor = new QueryProcessor(hdt);
   }
-
   numHops=1;
   filterPrefixStr="";
   continuousDictionary=true;
@@ -76,7 +74,9 @@ HDTDocument::HDTDocument(std::string file) {
   preffixEndSUBJECT=0;
   preffixIniOBJECT=0;
   preffixEndOBJECT=0;
+  literalEndID=0;
 }
+
 
 /*!
  * Destructor
@@ -233,7 +233,29 @@ unsigned int HDTDocument::StringToid (string term, hdt::TripleComponentRole role
 	return hdt->getDictionary()->stringToId(term,role);
 }
 
-void HDTDocument::configureHops(int setnumHops,vector<unsigned int> filterPredicates,string setfilterPrefixStr,bool setcontinuousDictionary){
+string HDTDocument::globalIdToString (unsigned int id, hdt::TripleComponentRole role){
+	if (role==OBJECT){
+		if (continuousDictionary && id>hdt->getDictionary()->getNsubjects()){
+			// convert the id to the traditional one
+			id = id - (hdt->getDictionary()->getNsubjects()-hdt->getDictionary()->getNshared());
+		}
+	}
+
+	return hdt->getDictionary()->idToString(id,role);
+
+}
+
+unsigned int HDTDocument::StringToGlobalId (string term, hdt::TripleComponentRole role){
+	unsigned int id = hdt->getDictionary()->stringToId(term,role);
+		if (role==OBJECT){
+			if (continuousDictionary && id>hdt->getDictionary()->getNsubjects()){
+				id=id+(hdt->getDictionary()->getNsubjects()-hdt->getDictionary()->getNshared());
+			}
+		}
+		return id;
+}
+
+void HDTDocument::configureHops(int setnumHops,vector<unsigned int> filterPredicates,string setfilterPrefixStr,bool setcontinuousDictionary, bool setincludeLiterals){
 	numHops = setnumHops;
 	preds.clear();
 	std::copy(filterPredicates.begin(),
@@ -244,6 +266,20 @@ void HDTDocument::configureHops(int setnumHops,vector<unsigned int> filterPredic
 	// Get range of preffix
 	filterPrefixStr = setfilterPrefixStr;
 
+	// get the ID of literals if needed
+	if (setfilterPrefixStr=="" || setfilterPrefixStr!="predef-dbpedia2016-04"){
+		IteratorUCharString * itObjects = hdt->getDictionary()->getObjects();
+		bool foundNonString=false;
+		literalEndID = hdt->getDictionary()->getNshared();
+		while (itObjects->hasNext() && !foundNonString){
+			literalEndID++;
+			unsigned char * str = itObjects->next();
+			if (strncmp((const char *)str,(const char *)"\"",1)!=0){
+				foundNonString=true;
+			}
+		}
+	}
+
 	if (setfilterPrefixStr!=""){
 		if (setfilterPrefixStr=="predef-dbpedia2016-04"){ // FOR DBPEDIA 2016-04
 			preffixIniSO=2979755;
@@ -252,6 +288,7 @@ void HDTDocument::configureHops(int setnumHops,vector<unsigned int> filterPredic
 			preffixEndOBJECT=153168015;
 			preffixIniSUBJECT=50097212;
 			preffixEndSUBJECT=52750736;
+			literalEndID=147777579;
 		}
 		else{
 			IteratorUInt *itIDSol = hdt->getDictionary()->getIDSuggestions(setfilterPrefixStr.c_str(),SUBJECT);
@@ -271,7 +308,7 @@ void HDTDocument::configureHops(int setnumHops,vector<unsigned int> filterPredic
 					ini++;
 				}
 				else{
-					if (soZone && sol >=hdt->getDictionary()->getNshared()){
+					if (soZone && sol >hdt->getDictionary()->getNshared()){
 						preffixEndSO=prev;
 						preffixIniSUBJECT=sol;
 						soZone=false;
@@ -494,7 +531,7 @@ void HDTDocument::addhop(size_t termID,int currenthop,TripleComponentRole role, 
 					{
 						//check the prefix if needed
 						//if (filterPrefixStr=="" || (hdt->getDictionary()->idToString(triple->getObject(),OBJECT).find(filterPrefixStr) != std::string::npos)){
-						if (filterPrefixStr=="" || ((triple->getObject()>=preffixIniSO) && (triple->getObject() <=preffixEndSO)) || ((triple->getObject()>=preffixIniOBJECT) && (triple->getObject() <=preffixEndOBJECT))){
+						if (filterPrefixStr=="" || (includeLiterals==true && triple->getObject()<literalEndID) || ((triple->getObject()>=preffixIniSO) && (triple->getObject() <=preffixEndSO)) || ((triple->getObject()>=preffixIniOBJECT) && (triple->getObject() <=preffixEndOBJECT))){
 							if (processedTriples<limit){ // check if we exceed the limit in terms of number of triples
 								if (readTriples<offset){ //check if we need to skip some offset
 									if (skippedtriplesSet.find(*triple)==skippedtriplesSet.end()){ //only count as skipped if the triple is not skipped before
@@ -538,7 +575,7 @@ void HDTDocument::addhop(size_t termID,int currenthop,TripleComponentRole role, 
 						{
 							//check the prefix if needed
 							//if (filterPrefixStr=="" || (hdt->getDictionary()->idToString(triple->getObject(),OBJECT).find(filterPrefixStr) != std::string::npos)){
-							if (filterPrefixStr=="" || ((triple->getObject()>=preffixIniSO) && (triple->getSubject() <=preffixEndSO)) || ((triple->getObject()>=preffixIniSUBJECT) && (triple->getSubject() <=preffixEndSUBJECT))){
+							if (filterPrefixStr=="" || (includeLiterals==true && triple->getObject()<literalEndID) || ((triple->getObject()>=preffixIniSO) && (triple->getSubject() <=preffixEndSO)) || ((triple->getObject()>=preffixIniSUBJECT) && (triple->getSubject() <=preffixEndSUBJECT))){
 								if (processedTriples<limit){ // check if we exceed the limit in terms of number of triples
 									if (readTriples<offset){ //check if we need to skip some offset
 										if (skippedtriplesSet.find(*triple)==skippedtriplesSet.end()){ //only count as skipped if the triple is not present before
@@ -566,7 +603,7 @@ void HDTDocument::addhop(size_t termID,int currenthop,TripleComponentRole role, 
 				delete it;
 			}
 		}
-	//	delete it;
+		//delete it;
 	}
 }
 void HDTDocument::remove(){
@@ -575,13 +612,15 @@ void HDTDocument::remove(){
 
 void HDTDocument::setHDT(hdt::HDT* hdtCopy){
 	hdt = hdtCopy;
-        processor = new QueryProcessor(hdt);
+	processor = new QueryProcessor(hdt);
 }
 
 hdt::HDT* HDTDocument::getHDT(){
 	return hdt;
 }
+
 void HDTDocument::cloneHDT (HDTDocument doc){
 	hdt = doc.getHDT();
 	processor = new QueryProcessor(hdt);
 }
+
