@@ -267,7 +267,7 @@ void HDTDocument::configureHops(int setnumHops,vector<unsigned int> filterPredic
 	filterPrefixStr = setfilterPrefixStr;
 
 	// get the ID of literals if needed
-	if (setfilterPrefixStr=="" || setfilterPrefixStr!="predef-dbpedia2016-04" || setfilterPrefixStr!="predef-wikidata2020-03-all"){
+	if (setfilterPrefixStr=="" || (setfilterPrefixStr!="predef-dbpedia2016-04"&& setfilterPrefixStr!="predef-wikidata2020-03-all")){
 		IteratorUCharString * itObjects = hdt->getDictionary()->getObjects();
 		bool foundNonString=false;
 		literalEndID = hdt->getDictionary()->getNshared();
